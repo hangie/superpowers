@@ -1,0 +1,154 @@
+{
+  "skill_name": "plan-document-reviewer",
+  "description": "Each eval contains a plan with one deliberate flaw that a well-formed reviewer should catch. Plans are otherwise complete and spec-aligned — they will pass the current reviewer unchanged. The flaw in each case requires reading the source files to detect. Assertions are binary: a grader subagent can check them by looking for the presence or absence of specific words or phrases in the reviewer output.",
+  "evals": [
+    {
+      "id": 1,
+      "description": "Dict schema mismatch — the plan's helper expects dict keys that don't match what the actual function returns. The filtering will fail silently or return incomplete data.",
+      "known_flaw": "Task 1.2 specifies the helper validates against 'result keys'. Task 2.2 proposes using fields=['name', 'path'] for filtering. But the source file shows list_modules returns dicts with keys 'module_name', 'file_path', 'is_namespace', 'exports' — not 'name' and 'path'. The helper will raise ValueError for invalid fields 'name' and 'path', blocking the exact usage shown in the plan's acceptance criteria.",
+      "spec": "Add an optional `fields` parameter to the `list_modules` tool so callers can request only specific fields, reducing token usage in multi-call scenarios. When fields is None the existing behavior is unchanged. When fields is provided only those keys are returned. Invalid field names should raise a ValueError showing valid options.",
+      "plan": "# Add Fields Parameter to list_modules Implementation Plan\n\n> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.\n\n**Goal:** Add optional `fields` parameter to `list_modules` to reduce token usage by filtering response fields.\n\n**Architecture:** Add runtime field filtering after full analysis. A shared helper validates requested fields and returns a filtered dict. Tools perform complete analysis then filter output.\n\n**Tech Stack:** Python 3.10+, pytest, FastMCP\n\n**Issue:** #315\n\n---\n\n## File Structure\n\n**`src/analyzer.py`** — Add `fields` parameter to `list_modules`\n\n**`src/utils.py`** — Add shared `_filter_fields` helper\n\n**`tests/test_analyzer.py`** — Add field filtering and validation tests\n\n---\n\n## Phase 1: Shared Helper\n\n### Task 1.1: Write tests for the field filtering helper\n\n**Goal:** Establish test coverage before implementing, so filtering behavior and error messages can be verified before any tool is modified.\n\n**Files:**\n- `tests/test_analyzer.py`\n\n**Constraints:**\n- Tests must cover empty list rejection with a helpful error message\n- Tests must verify that valid fields returns only the requested keys\n- Tests must verify None returns the original result unchanged\n- Tests must verify invalid field names raise ValueError showing sorted valid options\n\n**Acceptance Criteria:**\n- Tests exist and fail because the helper does not exist yet\n\n**Risks:** None\n\n---\n\n### Task 1.2: Implement the field filtering helper\n\n**Goal:** Create reusable validation logic so error messages and filtering behavior are consistent across every tool that uses it.\n\n**Files:**\n- `src/utils.py`\n\n**Constraints:**\n- Must raise ValueError for empty fields list with message explaining correct usage\n- Must raise ValueError for invalid field names, showing sorted valid options derived at runtime from the result keys\n- Must return a filtered dict containing only the requested keys when fields are valid\n- Must return the original dict unchanged when fields is None\n\n**Acceptance Criteria:**\n- All tests from Task 1.1 pass\n- Helper docstring explains usage and error behavior\n\n**Risks:** None — well-specified requirements\n\n---\n\n## Phase 2: list_modules Integration\n\n### Task 2.1: Write backward compatibility test\n\n**Goal:** Protect existing behavior before modifying the tool, so regressions are caught immediately if the fields parameter changes default behavior.\n\n**Files:**\n- `tests/test_analyzer.py`\n\n**Constraints:**\n- Must call list_modules without the fields parameter\n- Must verify all existing response keys are present in every returned item\n\n**Acceptance Criteria:**\n- Test passes against the current unmodified implementation\n\n**Risks:** None\n\n---\n\n### Task 2.2: Add fields parameter to list_modules\n\n**Goal:** Integrate the shared helper into list_modules so callers can reduce token usage by requesting only the fields they need.\n\n**Files:**\n- `src/analyzer.py`\n\n**Constraints:**\n- Use the shared helper from Phase 1 to validate and filter\n- fields=None must return the complete response unchanged\n- Update docstring to document the fields parameter and valid field names\n\n**Acceptance Criteria:**\n- All backward compatibility tests pass\n- Filtering verified to return only requested keys\n- Token reduction of at least 40% demonstrated for a fields=[\"name\", \"path\"] call\n\n**Risks:** None — pattern established by helper",
+      "source_files": [
+        {
+          "path": "src/analyzer.py",
+          "content": "from typing import Any\n\n\ndef list_modules(project_path: str) -> list[dict[str, Any]]:\n    \"\"\"List all modules discovered in the project.\n\n    Args:\n        project_path: Root path of the Python project\n\n    Returns:\n        List of module dictionaries. Each dict contains:\n            module_name (str): Fully qualified module name\n            file_path (str): Absolute path to the module file\n            is_namespace (bool): True if this is a namespace package\n            exports (list[str]): Public symbols exported by this module\n            source_lines (int): Total lines of code in the module\n    \"\"\"\n    ..."
+        },
+        {
+          "path": "src/utils.py",
+          "content": "# Shared utility functions\n# No field filtering utilities currently exist in this file\n"
+        }
+      ],
+      "assertions": [
+        {
+          "text": "The output contains 'Status: Approved'",
+          "polarity": "fail_if_present",
+          "rationale": "The plan contains a dict schema mismatch. A correct reviewer must not approve it."
+        },
+        {
+          "text": "The output contains 'name' or 'path' in the context of discussing field names or dict keys",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must identify the specific field names used in the plan that don't match the actual dict structure."
+        },
+        {
+          "text": "The output contains 'module_name' or 'file_path' or mentions the actual dict keys from the source",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must reference the actual dict keys from the source to explain the mismatch."
+        },
+        {
+          "text": "The output contains 'Issues Found'",
+          "polarity": "fail_if_absent",
+          "rationale": "The structured output format requires this exact phrase when issues are present."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "description": "Semantic duplicate — the plan proposes creating a helper that duplicates existing functionality under a different name. Requires checking that proposed abstractions don't already exist.",
+      "known_flaw": "Task 1.2 proposes creating `_filter_fields(result, fields)`. The source shows `filter_result(result, fields)` exists with identical signature and behavior. The difference is only the name (_filter_fields vs filter_result). This creates semantic duplication — two functions doing the same thing will confuse maintainers and split the bug surface. Requires recognizing functional equivalence, not just name matching.",
+      "spec": "Add an optional `fields` parameter to the `get_type_info` tool so callers can request only specific fields, reducing token usage. When fields is None the existing behavior is unchanged. When fields is provided only those keys are returned. Invalid field names should raise a ValueError showing valid options.",
+      "plan": "# Add Fields Parameter to get_type_info Implementation Plan\n\n> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.\n\n**Goal:** Add optional `fields` parameter to `get_type_info` to reduce token usage by filtering response fields.\n\n**Architecture:** Add runtime field filtering after full Jedi analysis. A new shared helper validates requested fields and returns a filtered dict. Analysis is always complete — filtering happens on output only.\n\n**Tech Stack:** Python 3.10+, pytest, FastMCP\n\n**Issue:** #315\n\n---\n\n## File Structure\n\n**`src/server.py`** — Add `fields` parameter to `get_type_info`\n\n**`src/utils.py`** — Add new `_filter_fields` helper function\n\n**`tests/test_server.py`** — Add field filtering and validation tests\n\n---\n\n## Phase 1: Shared Helper\n\n### Task 1.1: Write tests for the new field filtering helper\n\n**Goal:** Establish test coverage before implementing so error messages and filtering behavior are verified before any tool is touched.\n\n**Files:**\n- `tests/test_server.py`\n\n**Constraints:**\n- Tests must cover empty list rejection\n- Tests must verify valid fields returns only the requested keys\n- Tests must verify None returns original unchanged\n- Tests must verify invalid field names raise ValueError showing valid options\n\n**Acceptance Criteria:**\n- Tests exist and fail because `_filter_fields` does not exist yet\n\n**Risks:** None\n\n---\n\n### Task 1.2: Implement the new _filter_fields helper in utils.py\n\n**Goal:** Create a reusable helper so all tools share consistent validation and filtering logic rather than duplicating it.\n\n**Files:**\n- `src/utils.py`\n\n**Constraints:**\n- Must raise ValueError for empty fields list\n- Must raise ValueError for invalid fields, showing sorted valid options from result keys\n- Must return filtered dict for valid fields\n- Must return original dict when fields is None\n- Name the function `_filter_fields` to indicate it is internal\n\n**Acceptance Criteria:**\n- All tests from Task 1.1 pass\n\n**Risks:** None\n\n---\n\n## Phase 2: get_type_info Integration\n\n### Task 2.1: Write backward compatibility test\n\n**Goal:** Protect existing get_type_info behavior before modifying the tool.\n\n**Files:**\n- `tests/test_server.py`\n\n**Constraints:**\n- Call get_type_info without fields parameter\n- Verify all existing response keys are present\n\n**Acceptance Criteria:**\n- Test passes against current implementation\n\n**Risks:** None\n\n---\n\n### Task 2.2: Add fields parameter to get_type_info\n\n**Goal:** Integrate the shared helper so callers can reduce token usage.\n\n**Files:**\n- `src/server.py`\n\n**Constraints:**\n- Use `_filter_fields` from utils.py\n- fields=None returns complete response unchanged\n- Update docstring with fields parameter and valid field names\n\n**Acceptance Criteria:**\n- All tests pass\n- Token reduction of at least 40% demonstrated\n\n**Risks:** None",
+      "source_files": [
+        {
+          "path": "src/utils.py",
+          "content": "from typing import Any\n\n\ndef filter_result(result: dict[str, Any], fields: list[str] | None) -> dict[str, Any]:\n    \"\"\"Filter a result dictionary to only the requested fields.\n\n    Args:\n        result: The full result dictionary to filter\n        fields: Keys to include. If None, returns result unchanged.\n\n    Returns:\n        Filtered dictionary containing only requested keys,\n        or the original dict if fields is None.\n\n    Raises:\n        ValueError: If fields is an empty list.\n        ValueError: If any field name is not present in result,\n                    with message showing sorted valid field names.\n    \"\"\"\n    if fields is None:\n        return result\n    if not fields:\n        raise ValueError(\n            \"fields cannot be empty. Omit the parameter to get all fields.\"\n        )\n    valid = set(result.keys())\n    invalid = set(fields) - valid\n    if invalid:\n        raise ValueError(\n            f\"Invalid fields: {sorted(invalid)}. \"\n            f\"Valid fields are: {sorted(valid)}\"\n        )\n    return {k: v for k, v in result.items() if k in fields}\n"
+        },
+        {
+          "path": "src/server.py",
+          "content": "# MCP tool implementations\n# get_type_info and other tools are defined here\n# utils.filter_result is available for import\n"
+        }
+      ],
+      "assertions": [
+        {
+          "text": "The output contains 'Status: Approved'",
+          "polarity": "fail_if_present",
+          "rationale": "The plan proposes creating a duplicate of an existing function. A correct reviewer must not approve this."
+        },
+        {
+          "text": "The output contains the word 'duplicate' or the word 'already exists' or the word 'existing'",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must identify that the proposed helper duplicates existing functionality."
+        },
+        {
+          "text": "The output contains 'filter_result' or 'utils.py'",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must name the existing function or file where the equivalent logic already lives."
+        },
+        {
+          "text": "The output contains 'Issues Found'",
+          "polarity": "fail_if_absent",
+          "rationale": "The structured output format requires this exact phrase when issues are present."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "description": "Parameter semantics mismatch — the plan uses parameters that exist but with wrong conventions. Requires checking that function signatures match what the plan expects, including semantic expectations.",
+      "known_flaw": "Task 2.2 states 'Call `analyze_symbol(file, line, column, scope=namespace)`'. The source shows analyze_symbol exists with signature (file_path, line, column, detailed) but the docstring specifies 'line: 1-based line number'. However, Task 1.1 test constraints show usage with line=0 for the first line. This creates an off-by-one error - tests will fail because line indexing doesn't match the function's expectation. Requires reading docstrings, not just parameter names.",
+      "spec": "Add a `get_symbol_at_position` wrapper around the existing `analyze_symbol` function to provide a more intuitive API for MCP tool consumers. The wrapper should accept the same parameters but with better error messages and validation.",
+      "plan": "# Add get_symbol_at_position Wrapper Implementation Plan\n\n> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.\n\n**Goal:** Create a developer-friendly wrapper around analyze_symbol with better error handling.\n\n**Architecture:** Thin wrapper that validates inputs then delegates to analyze_symbol. No logic duplication.\n\n**Tech Stack:** Python 3.10+, pytest, FastMCP\n\n**Issue:** #298\n\n---\n\n## File Structure\n\n**`src/analyzer.py`** — Add `get_symbol_at_position` wrapper\n\n**`tests/test_analyzer.py`** — Add wrapper tests\n\n---\n\n## Phase 1: Tests\n\n### Task 1.1: Write tests for the wrapper\n\n**Goal:** Establish test coverage before implementing so validation behavior is locked in.\n\n**Files:**\n- `tests/test_analyzer.py`\n\n**Constraints:**\n- Test getting symbol at first line with: `get_symbol_at_position('file.py', line=0, column=5)`\n- Test getting symbol at last line with: `get_symbol_at_position('file.py', line=-1, column=0)` for last line\n- Test that invalid file paths raise FileNotFoundError with helpful message\n- Test that out-of-bounds line numbers raise ValueError\n\n**Acceptance Criteria:**\n- Tests exist and fail because wrapper does not exist yet\n\n**Risks:** None\n\n---\n\n## Phase 2: Implementation\n\n### Task 2.1: Implement input validation\n\n**Goal:** Add robust validation before delegating to analyze_symbol.\n\n**Files:**\n- `src/analyzer.py`\n\n**Constraints:**\n- Validate file exists and is readable\n- Validate line and column are non-negative integers\n- Provide clear error messages mentioning valid ranges\n\n**Acceptance Criteria:**\n- Validation tests pass\n- Error messages are actionable\n\n**Risks:** None\n\n---\n\n### Task 2.2: Delegate to analyze_symbol\n\n**Goal:** Call the underlying analyzer after validation passes.\n\n**Files:**\n- `src/analyzer.py`\n\n**Constraints:**\n- Call `analyze_symbol(file_path=file, line=line, column=column, detailed=True)` after validation\n- Return analyze_symbol's result unchanged\n- Preserve all existing analyze_symbol behavior\n\n**Acceptance Criteria:**\n- All tests from Task 1.1 pass\n- Wrapper adds no overhead beyond validation\n\n**Risks:** None — analyze_symbol is well-tested",
+      "source_files": [
+        {
+          "path": "src/analyzer.py",
+          "content": "from typing import Any\n\n\ndef analyze_symbol(\n    file_path: str,\n    line: int,\n    column: int,\n    detailed: bool = True,\n) -> dict[str, Any]:\n    \"\"\"Analyze the symbol at the given cursor position.\n\n    Args:\n        file_path: Absolute path to the Python source file\n        line: 1-based line number (first line is 1, not 0)\n        column: 0-based column offset\n        detailed: If True, include full method and attribute resolution.\n                  If False, return only name, type, and module.\n\n    Returns:\n        Dictionary of symbol information. Keys vary by symbol type.\n        \n    Raises:\n        ValueError: If line is less than 1 or greater than file line count.\n    \"\"\"\n    if line < 1:\n        raise ValueError(\"line must be >= 1 (1-based indexing)\")\n    ...\n"
+        }
+      ],
+      "assertions": [
+        {
+          "text": "The output contains 'Status: Approved'",
+          "polarity": "fail_if_present",
+          "rationale": "The plan contains an indexing convention mismatch. A correct reviewer must not approve this."
+        },
+        {
+          "text": "The output contains '0-based' or '1-based' or mentions line indexing or line numbering convention",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must identify the specific indexing convention mismatch between the plan's tests and the function's expectations."
+        },
+        {
+          "text": "The output contains 'line=0' or 'line=-1' or references the specific test values that violate the convention",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must cite the specific problematic values from the plan's test constraints."
+        },
+        {
+          "text": "The output contains 'Issues Found'",
+          "polarity": "fail_if_absent",
+          "rationale": "The structured output format requires this exact phrase when issues are present."
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "description": "Phase dependency gap — the helper built in Phase 1 handles a single dict. Phase 3 applies it to a function that returns an array of dicts. The plan does not acknowledge this difference and the helper will not work for Phase 3 without modification.",
+      "known_flaw": "Task 1.2 specifies the helper returns 'a filtered dict'. Task 3.2 then applies this helper to find_references, whose source file shows it returns list[dict]. The plan treats the helper as reusable across both phases without acknowledging the shape difference. An implementer following this plan will write a single-dict helper in Phase 1 and discover it breaks in Phase 3 with no guidance on how to handle arrays.",
+      "spec": "Add an optional `fields` parameter to both `get_type_info` and `find_references` to reduce token usage. A shared helper should handle the validation and filtering logic so it is not duplicated. When fields is None existing behavior is unchanged. When fields is provided only those keys are returned per result.",
+      "plan": "# Add Fields Parameter to get_type_info and find_references Implementation Plan\n\n> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.\n\n**Goal:** Add optional `fields` parameter to get_type_info and find_references to reduce token usage by filtering response fields.\n\n**Architecture:** A shared helper handles validation and filtering. Tools perform full analysis then pass results through the helper. No performance optimization — token reduction only.\n\n**Tech Stack:** Python 3.10+, pytest, FastMCP\n\n**Issue:** #315\n\n---\n\n## File Structure\n\n**`src/utils.py`** — Add shared `_filter_fields` helper\n\n**`src/server.py`** — Add `fields` parameter to `get_type_info` and `find_references`\n\n**`tests/test_server.py`** — Add field filtering and validation tests for both tools\n\n---\n\n## Phase 1: Shared Helper\n\n### Task 1.1: Write tests for the field filtering helper\n\n**Goal:** Lock in expected behavior before implementing so error messages and filtering are verified before any tool is modified.\n\n**Files:**\n- `tests/test_server.py`\n\n**Constraints:**\n- Tests must cover empty list rejection\n- Tests must verify valid fields returns only the requested keys\n- Tests must verify None returns original unchanged\n- Tests must verify invalid field names raise ValueError showing valid options\n\n**Acceptance Criteria:**\n- Tests exist and fail because helper does not exist yet\n\n**Risks:** None\n\n---\n\n### Task 1.2: Implement the field filtering helper\n\n**Goal:** Create a single reusable utility so filtering and validation logic is not repeated across tools.\n\n**Files:**\n- `src/utils.py`\n\n**Constraints:**\n- Must raise ValueError for empty fields list with helpful message\n- Must raise ValueError for invalid fields with sorted valid options from result keys\n- Must return a filtered dict containing only the requested keys\n- Must return the original dict unchanged when fields is None\n\n**Acceptance Criteria:**\n- All tests from Task 1.1 pass\n- Helper has clear docstring\n\n**Risks:** None\n\n---\n\n## Phase 2: get_type_info\n\n### Task 2.1: Add fields parameter to get_type_info\n\n**Goal:** Deliver the first tool integration, establishing the pattern for Phase 3.\n\n**Files:**\n- `src/server.py`\n\n**Constraints:**\n- Use the shared helper from Phase 1\n- fields=None returns complete response unchanged\n- Update docstring\n\n**Acceptance Criteria:**\n- Backward compatibility preserved\n- Filtering returns only requested keys\n- All tests pass\n\n**Risks:** None\n\n---\n\n## Phase 3: find_references\n\n### Task 3.1: Write tests for find_references field filtering\n\n**Goal:** Establish coverage before modifying the tool.\n\n**Files:**\n- `tests/test_server.py`\n\n**Constraints:**\n- Test filtering on a symbol with multiple references\n- Verify filtering applies to every reference in the result\n- Test validation errors\n\n**Acceptance Criteria:**\n- Tests exist and fail because fields parameter does not exist yet\n\n**Risks:** None\n\n---\n\n### Task 3.2: Add fields parameter to find_references\n\n**Goal:** Complete the feature by applying the same pattern to find_references.\n\n**Files:**\n- `src/server.py`\n\n**Constraints:**\n- Use the shared helper from Phase 1\n- fields=None returns complete response unchanged\n- Update docstring\n\n**Acceptance Criteria:**\n- All tests pass\n- Token reduction demonstrated for a multi-reference query\n\n**Risks:** None — same pattern as Phase 2",
+      "source_files": [
+        {
+          "path": "src/server.py",
+          "content": "from typing import Any\n\n\ndef get_type_info(\n    file: str,\n    line: int,\n    column: int,\n    detailed: bool = True,\n) -> dict[str, Any]:\n    \"\"\"Get type information at a cursor position.\n\n    Returns:\n        Dictionary of type information for the symbol at the given position.\n    \"\"\"\n    ...\n\n\ndef find_references(\n    file: str,\n    line: int,\n    column: int,\n) -> list[dict[str, Any]]:\n    \"\"\"Find all references to the symbol at a cursor position.\n\n    Returns:\n        List of reference dictionaries. Each dict contains:\n            name (str): Symbol name\n            type (str): Symbol type\n            line (int): Line number of this reference\n            column (int): Column of this reference\n            file (str): File containing this reference\n            is_definition (bool): True if this is the definition site\n    \"\"\"\n    ...\n"
+        }
+      ],
+      "assertions": [
+        {
+          "text": "The output contains 'Status: Approved'",
+          "polarity": "fail_if_present",
+          "rationale": "The helper is designed for a single dict but Phase 3 applies it to a list-returning function. A correct reviewer must not approve this."
+        },
+        {
+          "text": "The output contains the word 'list' or the word 'array' in the context of find_references",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must identify that find_references returns a collection which the helper does not handle."
+        },
+        {
+          "text": "The output contains 'find_references' in the Issues section",
+          "polarity": "fail_if_absent",
+          "rationale": "The reviewer must name the specific tool where the phase dependency gap causes a problem."
+        },
+        {
+          "text": "The output contains 'Issues Found'",
+          "polarity": "fail_if_absent",
+          "rationale": "The structured output format requires this exact phrase when issues are present."
+        }
+      ]
+    }
+  ]
+}

@@ -14,6 +14,7 @@ Task tool (general-purpose):
 
     **Plan to review:** [PLAN_FILE_PATH]
     **Spec for reference:** [SPEC_FILE_PATH]
+    **Source files (if provided):** [SOURCE_FILES or "Not provided"]
 
     ## What to Check
 
@@ -22,6 +23,7 @@ Task tool (general-purpose):
     | Completeness | TODOs, placeholders, incomplete tasks, missing steps |
     | Spec Alignment | Plan covers spec requirements, no major scope creep |
     | Task Decomposition | Tasks have clear boundaries, steps are actionable |
+    | Codebase Alignment | **If source files are provided:** Verify plan assumptions against actual source code. Check that function signatures match what the plan expects, helpers designed in early phases work with the data structures used in later phases, and proposed abstractions don't already exist in the codebase. |
     | Buildability | Could an engineer follow this plan without getting stuck? |
 
     ## Calibration
