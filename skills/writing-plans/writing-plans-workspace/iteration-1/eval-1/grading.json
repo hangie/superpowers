@@ -1,0 +1,159 @@
+{
+  "eval_id": 1,
+  "prompt": "Write an implementation plan for splitting a feature branch into two separate PRs. The existing PR c...",
+  "total": 30,
+  "passed": 16,
+  "pass_rate": 53.3,
+  "results": [
+    {
+      "text": "The output contains a fenced code block opened with ``` followed by a programming language name (python, typescript, javascript, bash, sh, ts, js, or similar)",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains the exact string 'git commit -m'",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains 'Expected: PASS' or 'Expected: FAIL' or 'Expected: pass' or 'Expected: fail'",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains 'git add ' followed by one or more file paths as an explicit instruction",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains 'Run:' immediately followed by a terminal command on the same line",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains a CLI flag as part of an explicit run command (e.g. ' -v', ' -f', ' --watch', ' --coverage')",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains test function definition syntax: 'def test_' or \"it('\" or \"describe('\"",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains code import syntax: 'import {' or 'from X import' or 'require('",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains variable declaration syntax: 'const ' or 'let ' or 'var ' followed by a name and '='",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains a file path with a line number reference in the format filename:NNN (e.g. 'src/utils/git.ts:123')",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains test assertion code syntax: '.toBe(' or '.toEqual(' or '.toHaveBeenCalled('",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains a conventional commit message on its own line starting with 'feat:', 'fix:', 'chore:', 'refactor:', or 'test:'",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains test lifecycle hook syntax: 'beforeEach(' or 'afterEach(' or 'beforeAll('",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains an expected output prediction after a step (e.g. 'Expected output:' or 'You should see:')",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains 'npm run ' or 'yarn run ' or 'bun run ' or 'pnpm run ' as an explicit execution instruction in a step",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains at least one sentence with the word 'goal', 'intent', 'objective', 'purpose', or 'we want' describing the task's aim",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains at least one use of 'because', 'in order to', or 'so that' explaining why something matters",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains at least one completion criterion containing 'passes', 'verified', 'no remaining', 'confirmed', or 'complete when'",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains at least one sentence identifying a risk, constraint, or non-obvious concern using 'risk', 'constraint', 'important', 'note that', 'caveat', or 'careful'",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains at least one sentence describing what a successful outcome looks like rather than just what steps to perform",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output mentions checking or verifying the difference between branches before copying any code",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output identifies the risk that the feature branch may contain unrelated changes that should not be copied",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output does not contain specific implementation function names prescribed as code to write (e.g. 'clearGitCache', 'getGitStatus', 'getGitAheadBehind')",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output mentions cache clearing or cache isolation as a concern for test correctness",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output does not contain a specific git show or git checkout command prescribing exactly how to copy code from the branch",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output identifies whether commits are interleaved or sequential as something to investigate before choosing a git strategy",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output identifies that the new branch should be based off main and not off the existing feature branch",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output identifies the risk that both features may touch the same files making a clean split difficult",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output identifies that the existing PR must remain in a working state after the split",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output does not prescribe a specific git strategy (cherry-pick, rebase, or manual extraction) before understanding the commit structure",
+      "passed": true,
+      "evidence": "No prescription found in plan"
+    }
+  ]
+}

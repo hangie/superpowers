@@ -7,9 +7,9 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+Write implementation plans that capture intent, constraints, and risks — not implementation details. The implementing agent is skilled and will write the actual code, commands, and tests. Your job is to give them the strategic picture: what to build, why, what could go wrong, and what "done" looks like.
 
-Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+Plans should be proportionate to the task. A simple rename gets a short plan. A complex migration gets phased grouping. A bug fix that needs investigation front-loads diagnosis before prescribing solutions.
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
@@ -62,53 +62,39 @@ This structure informs the task decomposition. Each task should produce self-con
 
 ## Task Structure
 
-````markdown
-### Task N: [Component Name]
+Each task describes **what** to accomplish and **why**, not **how**. The implementing agent will write the actual code, commands, and tests — your job is to set them up for success by capturing intent, constraints, and risks they might not see.
 
-**Files:**
-- Create: `exact/path/to/file.py`
-- Modify: `exact/path/to/existing.py:123-145`
-- Test: `tests/exact/path/to/test.py`
+### What each task should contain
 
-- [ ] **Step 1: Write the failing test**
+- **Goal:** What this task accomplishes and why it matters in the larger plan
+- **Files:** Which files to create or modify (use exact paths where known)
+- **Constraints:** Non-obvious requirements, edge cases, or gotchas the implementer needs to know
+- **Acceptance criteria:** Observable outcomes that prove the task is done (e.g. "tests pass", "no remaining references to X", "verified working with Y")
+- **Risks:** Anything that could go wrong or require a change of approach
 
-```python
-def test_specific_behavior():
-    result = function(input)
-    assert result == expected
-```
+### What plans must NOT contain
 
-- [ ] **Step 2: Run test to verify it fails**
+Plans capture intent — they do not prescribe implementation. The implementing agent needs freedom to adapt when reality diverges from the plan. Do not include:
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
+- Code blocks or inline code with implementation logic (no function definitions, no variable declarations, no imports)
+- Exact shell commands, CLI invocations, or run instructions (no `Run:`, no `git commit -m`, no `npm run`)
+- Pre-written test code or test function signatures
+- Expected terminal output predictions (no `Expected: PASS` or `You should see:`)
+- Pre-written commit messages
 
-- [ ] **Step 3: Write minimal implementation**
+Instead, describe the *intent* behind each step in plain prose. For example, instead of writing a test function, say "Write a test that verifies [specific behavior] when [specific condition]." Instead of a git command, say "Commit the test and implementation together."
 
-```python
-def function(input):
-    return expected
-```
+### Proportionality
 
-- [ ] **Step 4: Run test to verify it passes**
+Match plan complexity to task complexity. A simple rename needs 2-4 tasks. A migration of 47 components needs phased grouping, not 47 individual tasks. If the task requires investigation before a fix can be designed, front-load investigation tasks and acknowledge that later tasks may change depending on findings.
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
+## What makes a good plan
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
-```
-````
-
-## Remember
-- Exact file paths always
-- Complete code in plan (not "add validation")
-- Exact commands with expected output
-- Reference relevant skills with @ syntax
-- DRY, YAGNI, TDD, frequent commits
+- Every task explains *why* it matters (use "because", "in order to", "so that")
+- Risks, constraints, and non-obvious concerns are called out explicitly (use "risk", "constraint", "important", "note that", "caveat", "careful")
+- The plan describes what success looks like as an observable outcome, not just a list of steps to perform
+- Completion criteria are concrete and verifiable ("passes", "verified", "no remaining", "confirmed", "complete when")
+- The plan starts with a clear statement of the goal, intent, or purpose of the work
 
 ## Plan Review Loop
 
