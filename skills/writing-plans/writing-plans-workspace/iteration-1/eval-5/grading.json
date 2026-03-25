@@ -1,0 +1,134 @@
+{
+  "eval_id": 5,
+  "prompt": "Write an implementation plan for a simple change: rename the exported function 'getUserData' to 'fet...",
+  "total": 25,
+  "passed": 10,
+  "pass_rate": 40.0,
+  "results": [
+    {
+      "text": "The output contains a fenced code block opened with ``` followed by a programming language name (python, typescript, javascript, bash, sh, ts, js, or similar)",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains the exact string 'git commit -m'",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains 'Expected: PASS' or 'Expected: FAIL' or 'Expected: pass' or 'Expected: fail'",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains 'git add ' followed by one or more file paths as an explicit instruction",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains 'Run:' immediately followed by a terminal command on the same line",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains a CLI flag as part of an explicit run command (e.g. ' -v', ' -f', ' --watch', ' --coverage')",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains test function definition syntax: 'def test_' or \"it('\" or \"describe('\"",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains code import syntax: 'import {' or 'from X import' or 'require('",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains variable declaration syntax: 'const ' or 'let ' or 'var ' followed by a name and '='",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains a file path with a line number reference in the format filename:NNN",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains test assertion code syntax: '.toBe(' or '.toEqual(' or '.toHaveBeenCalled('",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains a conventional commit message on its own line starting with 'feat:', 'fix:', 'chore:', 'refactor:', or 'test:'",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains test lifecycle hook syntax: 'beforeEach(' or 'afterEach(' or 'beforeAll('",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains an expected output prediction after a step (e.g. 'Expected output:' or 'You should see:')",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains 'npm run ' or 'yarn run ' or 'bun run ' or 'pnpm run ' as an explicit execution instruction in a step",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains at least one sentence with the word 'goal', 'intent', 'objective', 'purpose', or 'we want' describing the task's aim",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains at least one use of 'because', 'in order to', or 'so that' explaining why something matters",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains at least one completion criterion containing 'passes', 'verified', 'no remaining', 'confirmed', or 'complete when'",
+      "passed": true,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains more than 4 distinct numbered tasks, sections, or top-level steps (indicating over-engineering for a simple rename)",
+      "passed": false,
+      "evidence": "Found 6 top-level tasks (threshold: >4)"
+    },
+    {
+      "text": "The output contains at least one sentence describing what a successful outcome looks like rather than just what steps to perform",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output mentions external consumers, dependent packages, published APIs, or downstream callers as a concern",
+      "passed": false,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output contains a specific search command as an instruction (e.g. 'grep -r', 'sed -i', 'find . -name', or a regex pattern)",
+      "passed": false,
+      "evidence": "Found in plan"
+    },
+    {
+      "text": "The output contains a completion criterion about no remaining references to the old function name 'getUserData'",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output does not contain prescribed IDE or editor commands for performing the rename (e.g. 'use Find and Replace', 'use Rename Symbol', 'use VSCode refactor')",
+      "passed": true,
+      "evidence": "Not found in plan"
+    },
+    {
+      "text": "The output does not contain 'npm run ' or 'yarn run ' or 'bun run ' or 'pnpm run ' as an explicit execution instruction in a step",
+      "passed": false,
+      "evidence": "Found in plan"
+    }
+  ]
+}
