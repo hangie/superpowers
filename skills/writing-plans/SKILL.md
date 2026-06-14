@@ -7,7 +7,9 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 ## Overview
 
-Write implementation plans that capture intent, constraints, and risks — not implementation details. The implementing agent is skilled and will write the actual code, commands, and tests. Your job is to give them the strategic picture: what to build, why, what could go wrong, and what "done" looks like.
+Write implementation plans that transfer **decisions**, not **work**. A decision is a choice you have already made: the behavior a test must enforce, the signature another task depends on, a constraint that cannot be violated. The work is producing the implementation that satisfies those decisions. Pin every decision precisely; leave the work to the implementing agent, who is skilled and will write the actual implementation against the contracts you set.
+
+The line matters because of *how* each kind of detail ages. A decision — a test's assertions, an interface's types, an exact version floor — does not rot: it constrains reality rather than predicting it, and if it is wrong it fails loudly and immediately. A prediction — a line number, an expected output string, a pre-guessed implementation body — rots the moment the code moves, and a wrong one silently anchors the implementer into reproducing your mistake. Capture the first. Never write the second.
 
 Plans should be proportionate to the task. A simple rename gets a short plan. A complex migration gets phased grouping. A bug fix that needs investigation front-loads diagnosis before prescribing solutions.
 
@@ -62,27 +64,28 @@ This structure informs the task decomposition. Each task should produce self-con
 
 ## Task Structure
 
-Each task describes **what** to accomplish and **why**, not **how**. The implementing agent will write the actual code, commands, and tests — your job is to set them up for success by capturing intent, constraints, and risks they might not see.
+Each task pins the **decisions** an implementer must honor and leaves them the **work** of satisfying those decisions. Capture the contract — what must be true when the task is done — precisely enough that a fresh agent with no other context cannot drift from it. Do not pre-solve the implementation for them.
 
 ### What each task should contain
 
 - **Goal:** What this task accomplishes and why it matters in the larger plan
-- **Files:** Which files to create or modify (use exact paths where known)
-- **Constraints:** Non-obvious requirements, edge cases, or gotchas the implementer needs to know
+- **Files:** Which files to create or modify (exact paths where known — omit line-number ranges, they drift)
+- **Interfaces:** The exact signatures this task consumes from earlier tasks and produces for later ones — function/method names, parameter and return types. A subagent sees only its own task; this block is how it learns the names and types neighboring tasks rely on. Copy them verbatim — they are decisions, not prose.
+- **Tests:** Pre-write the tests. A test encodes the *decision* about what correct behavior is, so show the assertions that define "right" for this task. Tests are the one form of code a plan should contain (see below).
+- **Constraints:** Non-obvious requirements, edge cases, gotchas, and any project-wide values the task must honor (version floors, flag defaults, naming rules) — copy exact values verbatim from the spec.
 - **Acceptance criteria:** Observable outcomes that prove the task is done (e.g. "tests pass", "no remaining references to X", "verified working with Y")
 - **Risks:** Anything that could go wrong or require a change of approach
 
 ### What plans must NOT contain
 
-Plans capture intent — they do not prescribe implementation. The implementing agent needs freedom to adapt when reality diverges from the plan. Do not include:
+A plan pins decisions and then stops. It does not do the implementer's work for them, and it does not record details that rot. Do not include:
 
-- Code blocks or inline code with implementation logic (no function definitions, no variable declarations, no imports)
-- Exact shell commands, CLI invocations, or run instructions (no `Run:`, no `git commit -m`, no `npm run`)
-- Pre-written test code or test function signatures
-- Expected terminal output predictions (no `Expected: PASS` or `You should see:`)
-- Pre-written commit messages
+- **Pre-written implementation bodies** — function internals, the algorithm, the actual fix. That is the work. Writing it ahead of time does the agent's job for them (often wrong), and a wrong body anchors them into reproducing your mistake. Specify the *contract* through tests and interfaces; let them write the body to satisfy it.
+- **Line-number ranges** (`file.py:123-145`) — they drift the instant anything above them changes.
+- **Expected terminal output** (`Expected: PASS`, "you should see…") — a prediction about a run you have not done.
+- **Pre-written commit messages** — written before the work that justifies them exists.
 
-Instead, describe the *intent* behind each step in plain prose. For example, instead of writing a test function, say "Write a test that verifies [specific behavior] when [specific condition]." Instead of a git command, say "Commit the test and implementation together."
+What a plan SHOULD carry precisely and verbatim: the **tests** that define correct behavior, the **interface signatures** tasks share, and any **exact constraint values**. Those are decisions — pin them. Everything else is intent, expressed in prose: say "Commit the test and implementation together," not a `git commit` line; say "Implement the minimal code to satisfy the test," not the function body.
 
 ### Proportionality
 
@@ -90,6 +93,7 @@ Match plan complexity to task complexity. A simple rename needs 2-4 tasks. A mig
 
 ## What makes a good plan
 
+- Every decision an implementer could otherwise re-derive differently — test assertions, shared interface signatures, exact constraint values — is pinned verbatim and unambiguously
 - Every task explains *why* it matters (use "because", "in order to", "so that")
 - Risks, constraints, and non-obvious concerns are called out explicitly (use "risk", "constraint", "important", "note that", "caveat", "careful")
 - The plan describes what success looks like as an observable outcome, not just a list of steps to perform
@@ -102,9 +106,9 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 **1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
 
-**2. Implementation-detail scan:** Search your plan for red flags — any of the patterns from the "What plans must NOT contain" section above (inline code, exact commands, pre-written tests, expected output, commit messages). Rewrite them as intent.
+**2. Decisions-vs-work scan:** Two checks. (a) Did you *pin* every decision an implementer could otherwise re-derive differently — test assertions, shared interface signatures, exact constraint values? Add any that are missing. (b) Did you *leak* any of the "must NOT contain" patterns — pre-written implementation bodies, line-number ranges, expected output, commit messages? Strip them back to intent.
 
-**3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
+**3. Interface consistency:** Do the signatures, types, and property names in each task's Interfaces block match across tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug — and the kind a context-isolated subagent will faithfully reproduce.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
